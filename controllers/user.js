@@ -113,6 +113,58 @@ user.updatePassword = async (req, res) => {
     } 
 }
 
+//follow user
+user.follow = async (req, res) => {
+
+    if (req.params.id !== req.user_id.toString()) {
+        try {
+            const user = await User.findById(req.user_id)
+            const currentUser = await User.findById(req.params.id)
+            if (!user.followings.includes(req.params.id)) {
+                if (!currentUser) {
+                    return res.send({ message: "User not foun" })
+                }
+                await user.updateOne({ $push: { followings: req.params.id } });
+                await currentUser.updateOne({ $push: { followers: req.user_id.toString() } });
+
+                res.status(200).send({ message: "User have been followed" });
+
+            } else {
+              return  res.status(400).send({ message: "You already follow this user" });
+            }
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    } else {
+        res.status(400).send({ message: "You cant follow yourself" });
+    }
+
+}
+//unfollow user
+user.unfollow = async (req, res) => {
+
+    if (req.params.id !== req.user_id.toString()) {
+        try {
+            const user = await User.findById(req.user_id)
+            const currentUser = await User.findById(req.params.id)
+            if (user.followings.includes(req.params.id)) {
+                await user.updateOne({ $pull: { followings: req.params.id } });
+                await currentUser.updateOne({ $pull: { followers: req.user_id.toString() } });
+
+             return res.status(200).send({ message: "User have been unfollowed" });
+
+            } else {
+              return  res.status(403).send({ message: "You do not follow this user initially" });
+            }
+        } catch (error) {
+           return res.status(500).send(error)
+        }
+    } else {
+       return  res.status(400).send({ message: "You cant unfollow yourself" });
+    }
+
+}
+
 
 
 module.exports = user
