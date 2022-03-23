@@ -47,11 +47,11 @@ user.signin = async (req, res) => {
         if (!user) return res.status(400).send({ message: "Invalid email or password" })
         const isValidPassword = await bcrypt.compare(data.password, user.password)
         if (!isValidPassword) return res.status(400).send({ message: "Invalid email or password" })
-        if (!user.status) return res.status(403).send({ message: "You have been disabled" })
+        if (!user.status) return res.status(400).send({ message: "You have been disabled" })
 
         const token = jwt.sign({ user_id: user._id }, JWT_SECRET_KEY)
 
-        res.status(200).send({
+        res.status(201).send({
             message: "User LoggedIn",
             data: {
                 token,
@@ -67,5 +67,21 @@ user.signin = async (req, res) => {
     }
 
 }
+
+//get single user by id
+user.getOne = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user_id)
+        if (!user) return res.status(403).send({ message: "User Profile not found" })
+        const { password, ...others } = user._doc
+        res.status(200).send({ message: "User Profile", data: others })
+    } catch (error) {
+        res.status(500).send({ message: "Couldn't get user", error })
+    }
+}
+
+
+
 
 module.exports = user

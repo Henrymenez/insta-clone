@@ -12,10 +12,13 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
 
 app.get('/ping', (req, res) => {
-    res.status(200).send("Welcome to New Insta-clone api!")
+    res.status(200).send("Welcome to New11 Insta-clone api!")
 });
 
+//auth routes
 app.use("/auth", require("./routes/auth"))
+//user routes
+app.use("/user", require("./routes/user"))
 
 
 // Not found route - 404
@@ -25,7 +28,7 @@ app.use("**", (req, res) => {
 
 
 app.listen(port, async () => {
-    try {
+    try { 
         await mongoose.connect(MONGODB_URI)
         console.log('Connected to database')
     } catch (error) {
