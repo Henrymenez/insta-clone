@@ -81,6 +81,37 @@ user.getOne = async (req, res) => {
     }
 }
 
+//update user info by id
+user.updateUser = async (req, res) => {
+    const data = req.body
+    try {
+        const user = await User.findByIdAndUpdate(req.user_id, { $set: data }, { new: true })
+        if (!user) return res.status(403).send({ message: "User Profile not found" })
+        const { password, ...others } = user._doc
+        res.status(200).send({ message: "User Profile Updated", data: others })
+    } catch (error) {
+        res.status(500).send({ message: "Couldn't Update user", error })
+    }
+}
+
+//update user password by id
+user.updatePassword = async (req, res) => {
+    const data = req.body
+    try {
+        const user = await User.findById(req.user_id)
+        if (!user) return res.status(403).send({ message: "User not found" })
+        const isValidPassword = await bcrypt.compare(data.oldpassword, user.password)
+        if (!isValidPassword) return res.status(400).send({ message: "Wrong Old password" })
+        if(data.password !== data.confirm) return res.send({message: "Password and Confirm not the same"})
+        const passwordHash = await bcrypt.hash(data.password, 10)
+        const updatedUser = await User.findByIdAndUpdate(req.user_id, { $set: {password: passwordHash} }, { new: true })
+
+        const { password, ...others } = updatedUser._doc
+        res.status(200).send({ message: "User Password Updated", data: others })
+    } catch (error) {
+        res.status(500).send({ message: "Couldn't Update user", error })
+    } 
+}
 
 
 
