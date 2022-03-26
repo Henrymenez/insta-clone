@@ -1,13 +1,12 @@
 const express = require("express");
 const mongoose = require('mongoose')
 const auth = require("./middlewares/auth")
+const User = require("./models/user");
 require('dotenv').config()
 const cors = require("cors");
 const morgan = require('morgan')
 const app = express();
-
 const multer = require('multer');
-const res = require("express/lib/response");
 const port = process.env.PORT
 const MONGODB_URI = process.env.MONGODB_URI
 
@@ -16,31 +15,41 @@ app.use(morgan('dev'));
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
+app.use('/uploads', express.static('./uploads'));
 
 app.get('/ping', (req, res) => {
     res.status(200).send("Welcome to New11 Insta-clone api!")
 });
 
-//testing multer
-const upload = multer({
-    dest: 'images',
-    limits: {
-        fileSize: 3000000
-    },
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|png|jpeg|gif)$/)) {
-            return cb(new Error('Please Upload an image'))
-        }
-        cb(undefined, true)
-    }
-})
 
-app.post('/upload', auth(), upload.single('upload'), (req, res) => {
-    console.log(req.file);
-    res.send()
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
+    }
+});
+const uploadImg = multer({ storage: storage }).single('image');
+
+app.post('/user/upload', auth(), uploadImg, async (req, res) => {
+    console.log(req.file.path);
+    try {
+        const user = await User.findByIdAndUpdate(req.user_id, {
+            $set: {
+                avater: req.file.path
+            }
+        }, { $new: true })
+        await user.save();
+        res.send({ data: user }).status(200)
+    } catch (error) {
+        res.status(500).send({ msg: error })
+    }
+
 }, (error, req, res, next) => {
     res.status(400).send({ error: error.message })
 })
+
 //auth routes
 app.use("/auth", require("./routes/auth"))
 //user routes
