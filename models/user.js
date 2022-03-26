@@ -29,7 +29,8 @@ const userSchema = new Schema({
         default: true
     },
     avater: {
-        type: Buffer
+        type: String,
+        default: ""
     },
     isAdmin: {
         type: Boolean,

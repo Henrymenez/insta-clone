@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const sharp = require("sharp")
 const User = require("../models/user")
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY
 
@@ -102,15 +103,15 @@ user.updatePassword = async (req, res) => {
         if (!user) return res.status(403).send({ message: "User not found" })
         const isValidPassword = await bcrypt.compare(data.oldpassword, user.password)
         if (!isValidPassword) return res.status(400).send({ message: "Wrong Old password" })
-        if(data.password !== data.confirm) return res.send({message: "Password and Confirm not the same"})
+        if (data.password !== data.confirm) return res.send({ message: "Password and Confirm not the same" })
         const passwordHash = await bcrypt.hash(data.password, 10)
-        const updatedUser = await User.findByIdAndUpdate(req.user_id, { $set: {password: passwordHash} }, { new: true })
+        const updatedUser = await User.findByIdAndUpdate(req.user_id, { $set: { password: passwordHash } }, { new: true })
 
         const { password, ...others } = updatedUser._doc
         res.status(200).send({ message: "User Password Updated", data: others })
     } catch (error) {
         res.status(500).send({ message: "Couldn't Update user", error })
-    } 
+    }
 }
 
 //follow user
@@ -130,7 +131,7 @@ user.follow = async (req, res) => {
                 res.status(200).send({ message: "User have been followed" });
 
             } else {
-              return  res.status(400).send({ message: "You already follow this user" });
+                return res.status(400).send({ message: "You already follow this user" });
             }
         } catch (error) {
             res.status(500).send(error)
@@ -151,20 +152,45 @@ user.unfollow = async (req, res) => {
                 await user.updateOne({ $pull: { followings: req.params.id } });
                 await currentUser.updateOne({ $pull: { followers: req.user_id.toString() } });
 
-             return res.status(200).send({ message: "User have been unfollowed" });
+                return res.status(200).send({ message: "User have been unfollowed" });
 
             } else {
-              return  res.status(403).send({ message: "You do not follow this user initially" });
+                return res.status(403).send({ message: "You do not follow this user initially" });
             }
         } catch (error) {
-           return res.status(500).send(error)
+            return res.status(500).send(error)
         }
     } else {
-       return  res.status(400).send({ message: "You cant unfollow yourself" });
+        return res.status(400).send({ message: "You cant unfollow yourself" });
     }
 
 }
 
+user.uploadImage = ((req, res) => {
+    console.log(req.file.buffer.toString());
+    res.send({ userId: req.user_id }).status(200)
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message })
+})
 
+//upload image
+// user.uploadImage = async (req, res) => {
+//     console.log(req);
+// const user = await User.findById(req.user_id);
+// if (!user) return res.status(403).send({ error: 'User not found' })
+// if (!req.file) return res.status(400).send({ error: "Please Upload an image" })
+// const string = await sharp(req.file.buffer).png().resize({ width: 250, height: 250 }).toString();
+// user.avatar = string
+// await user.save()
+// res.send()
+// }, (error, req, res, next) => {
+//     res.status(500).send({ error: error.message })
+// }
+// user.uploadImage = (req, res) => {
+//     console.log(req.file);
+//     res.send()
+// }, (error, req, res, next) => {
+//     res.status(400).send({ error: error.message })
+// }
 
 module.exports = user
