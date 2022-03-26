@@ -4,6 +4,7 @@ const auth = require("./middlewares/auth")
 const User = require("./models/user");
 require('dotenv').config()
 const cors = require("cors");
+const { cloudinary } = require("./utils/cloudinary")
 const morgan = require('morgan')
 const app = express();
 const multer = require('multer');
@@ -33,16 +34,22 @@ const storage = multer.diskStorage({
 const uploadImg = multer({ storage: storage }).single('image');
 
 app.post('/user/upload', auth(), uploadImg, async (req, res) => {
-    console.log(req.file.path);
+
+    const data = req.file.path
     try {
+
+        const uploadedResponse = await cloudinary.uploader.upload(data, {
+            upload_preset: 'ml_default'
+        });
         const user = await User.findByIdAndUpdate(req.user_id, {
             $set: {
-                avater: req.file.path
+                avater: uploadedResponse.url
             }
         }, { $new: true })
         await user.save();
-        res.send({ data: user }).status(200)
+        res.send({ user }).status(200)
     } catch (error) {
+        console.log((error))
         res.status(500).send({ msg: error })
     }
 

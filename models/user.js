@@ -28,11 +28,7 @@ const userSchema = new Schema({
         type: Boolean,
         default: true
     },
-    avatar: {
-        type: String,
-        default: ""
-    },
-    coverPhoto: {
+    avater: {
         type: String,
         default: ""
     },
