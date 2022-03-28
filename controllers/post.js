@@ -80,7 +80,7 @@ post.like = async (req, res) => {
         const post = await Post.findById(req.params.id)
         if (!post.likes.includes(req.user_id)) {
 
-            await post.updateOne({
+            await Post.findByIdAndUpdate(req.params.id, {
                 $push: {
                     likes: req.user_id
                 }
@@ -104,7 +104,7 @@ post.unlike = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id)
         if (post.likes.includes(req.user_id)) {
-            await Post.updateOne({ $pull: { likes: req.user_id } });
+            await Post.findByIdAndUpdate(req.params.id, { $pull: { likes: req.user_id } });
             res.status(200).send({ message: "Post unliked" });
 
         } else {
