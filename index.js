@@ -45,7 +45,8 @@ app.post('/upload', auth(), upload.single('upload'), (req, res) => {
 app.use("/auth", require("./routes/auth"))
 //user routes
 app.use("/user", require("./routes/user"))
-
+//post routes
+app.use("/post", require("./routes/post"))
 
 // Not found route - 404
 app.use("**", (req, res) => {
