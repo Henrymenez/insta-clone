@@ -1,5 +1,6 @@
 const Post = require("../models/post")
 const User = require("../models/user")
+const { cloudinary } = require("../utils/cloudinary")
 
 const post = {}
 
@@ -8,12 +9,17 @@ const post = {}
 
 post.create = async (req, res) => {
     const data = req.body
+    const image = req.file.path
 
     try {
+        const uploadedResponse = await cloudinary.uploader.upload(image, {
+            upload_preset: 'ml_default'
+        });
         const post = await new Post({
             owner: req.user_id,
             title: data.title,
             desc: data.desc,
+            image: uploadedResponse.url
         }).save()
 
         res.status(201).send(post)
@@ -23,6 +29,7 @@ post.create = async (req, res) => {
     }
 
 }
+
 post.getOne = async (req, res) => {
 
     try {

@@ -18,7 +18,8 @@ const postSchema = new Schema({
     },
     image: {
         type: String,
-        default: ""
+        required: true
+
     },
     status: {
         type: Boolean,
